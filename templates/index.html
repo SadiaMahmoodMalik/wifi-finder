@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYC Wi-Fi Hotspot Locator</title>
+</head>
+<body>
+    <h1>Search for Wi-Fi Hotspots in NYC</h1>
+
+    <!-- Dropdown form for borough and provider -->
+    <form id="search-form">
+        <label for="borough">Select Borough:</label>
+        <select id="borough" name="borough">
+            <option value="">Select Borough</option>
+            {% for borough in boroughs %}
+                <option value="{{ borough }}">{{ borough }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="provider">Select Provider:</label>
+        <select id="provider" name="provider">
+            <option value="">Select Provider</option>
+            {% for provider in providers %}
+                <option value="{{ provider }}">{{ provider }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Search</button>
+    </form>
+
+    <div id="no-results-message" style="display: none;">No results found</div>
+
+    <!-- Table to display results -->
+    <table id="results-table" style="display: none;">
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th>Borough</th>
+                <th>Provider</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Type</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <script>
+        // JavaScript to handle form submission and display results
+        document.getElementById("search-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const borough = document.getElementById("borough").value;
+            const provider = document.getElementById("provider").value;
+
+            // Debugging: Log the values being sent
+            console.log(`Sending search request for borough: ${borough}, provider: ${provider}`);
+
+            fetch(`/search?borough=${borough}&provider=${provider}`)
+                .then(response => response.json())
+                .then(data => {
+                    const resultsTable = document.getElementById("results-table");
+                    const noResultsMessage = document.getElementById("no-results-message");
+                    const tableBody = resultsTable.querySelector("tbody");
+
+                    // Clear previous results
+                    tableBody.innerHTML = "";
+
+                    if (data.length > 0) {
+                        resultsTable.style.display = "block";
+                        noResultsMessage.style.display = "none";
+
+                        data.forEach(item => {
+                            const row = document.createElement("tr");
+                            row.innerHTML = `
+                                <td>${item.Location}</td>
+                                <td>${item.Borough}</td>
+                                <td>${item.Provider}</td>
+                                <td>${item.Latitude}</td>
+                                <td>${item.Longitude}</td>
+                                <td>${item.Type}</td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    } else {
+                        resultsTable.style.display = "none";
+                        noResultsMessage.style.display = "block";
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching data:", error);
+                });
+        });
+    </script>
+</body>
+</html>
